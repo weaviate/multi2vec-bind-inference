@@ -1,8 +1,12 @@
 import torch
 from pydantic import BaseModel
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
+
 from ImageBind.models import imagebind_model
 from ImageBind.models.imagebind_model import ModalityType
-import ImageBind.data as data
+import bind_data as data
 
 
 class BindInput(BaseModel):
@@ -35,13 +39,21 @@ class BindResult:
 
 
 class Bind:
-  def __init__(self, device: str) -> None:
-    self.device = device
+  lock: Lock
+  executor: ThreadPoolExecutor
+
+  def __init__(self, cuda: bool, cuda_core: str) -> None:
+    self.lock = Lock()
+    self.executor = ThreadPoolExecutor()
+    self.device = 'cpu'
+    if cuda:
+      self.device=cuda_core
+
     self.model = imagebind_model.imagebind_huge(pretrained=True)
     self.model.eval()
     self.model.to(self.device)
 
-  def vectorize(self, input: BindInput) -> BindResult:
+  def _vectorize(self, input: BindInput) -> BindResult:
     inputs = {}
     if input.texts is not None and len(input.texts) > 0:
       inputs[ModalityType.TEXT] = data.load_and_transform_text(input.texts, self.device)
@@ -51,33 +63,26 @@ class Bind:
       inputs[ModalityType.AUDIO] = data.load_and_transform_audio_data(input.audio, self.device)
     if input.video is not None and len(input.video) > 0:
       inputs[ModalityType.VISION] = data.load_and_transform_video_data(input.video, self.device)
+    if input.depth is not None and len(input.depth) > 0:
+      inputs[ModalityType.DEPTH] = data.load_and_transform_vision_data(input.depth, self.device)
+    if input.imu is not None and len(input.imu) > 0:
+      inputs[ModalityType.IMU] = data.load_and_transform_vision_data(input.imu, self.device)
+    if input.thermal is not None and len(input.thermal) > 0:
+      inputs[ModalityType.THERMAL] = data.load_and_transform_vision_data(input.thermal, self.device)
 
     with torch.no_grad():
+      self.lock.acquire()
       embeddings = self.model(inputs)
+      self.lock.release()
 
-    text_vectors = embeddings.get(ModalityType.TEXT) if embeddings.get(ModalityType.TEXT) is not None else []
-    image_vectors = embeddings.get(ModalityType.VISION) if embeddings.get(ModalityType.VISION) is not None else []
-    audio_vectors = embeddings.get(ModalityType.AUDIO) if embeddings.get(ModalityType.AUDIO) is not None else []
-    video_vectors = embeddings.get(ModalityType.VISION) if embeddings.get(ModalityType.VISION) is not None else []
-    depth_vectors = embeddings.get(ModalityType.DEPTH) if embeddings.get(ModalityType.DEPTH) is not None else []
-    imu_vectors = embeddings.get(ModalityType.IMU) if embeddings.get(ModalityType.IMU) is not None else []
-    thermal_vectors = embeddings.get(ModalityType.THERMAL) if embeddings.get(ModalityType.THERMAL) is not None else []
+    text_vectors = embeddings.get(ModalityType.TEXT).tolist() if embeddings.get(ModalityType.TEXT) is not None else []
+    image_vectors = embeddings.get(ModalityType.VISION).tolist() if embeddings.get(ModalityType.VISION) is not None else []
+    audio_vectors = embeddings.get(ModalityType.AUDIO).tolist() if embeddings.get(ModalityType.AUDIO) is not None else []
+    video_vectors = embeddings.get(ModalityType.VISION).tolist() if embeddings.get(ModalityType.VISION) is not None else []
+    depth_vectors = embeddings.get(ModalityType.DEPTH).tolist() if embeddings.get(ModalityType.DEPTH) is not None else []
+    imu_vectors = embeddings.get(ModalityType.IMU).tolist() if embeddings.get(ModalityType.IMU) is not None else []
+    thermal_vectors = embeddings.get(ModalityType.THERMAL).tolist() if embeddings.get(ModalityType.THERMAL) is not None else []
 
-    print(f"embeddings[0]: {embeddings[ModalityType.TEXT][0]} len: {len(embeddings[ModalityType.TEXT][0])}")
-    print(f"embeddings[1]: {embeddings[ModalityType.VISION][1]} len: {len(embeddings[ModalityType.VISION][1])}")
-
-    print(
-        "Vision x Text: ",
-        torch.softmax(embeddings[ModalityType.VISION] @ embeddings[ModalityType.TEXT].T, dim=-1),
-    )
-    print(
-        "Audio x Text: ",
-        torch.softmax(embeddings[ModalityType.AUDIO] @ embeddings[ModalityType.TEXT].T, dim=-1),
-    )
-    print(
-        "Vision x Audio: ",
-        torch.softmax(embeddings[ModalityType.VISION] @ embeddings[ModalityType.AUDIO].T, dim=-1),
-    )
     return BindResult(
       text_vectors=text_vectors,
       image_vectors=image_vectors,
@@ -87,3 +92,6 @@ class Bind:
       imu_vectors=imu_vectors,
       thermal_vectors=thermal_vectors,
     )
+
+  async def vectorize(self, payload: BindInput) -> BindResult:
+    return await asyncio.wrap_future(self.executor.submit(self._vectorize, payload))
