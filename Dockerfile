@@ -13,5 +13,7 @@ RUN ./download.py
 
 COPY . .
 
+ENV PYTHONPATH="/app:/app/ImageBind"
+
 ENTRYPOINT ["/bin/sh", "-c"]
 CMD ["uvicorn app:app --host 0.0.0.0 --port 8080"]
