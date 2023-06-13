@@ -10,7 +10,9 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
 COPY . .
+
 ENV PYTHONPATH="/app:/app/ImageBind"
+
 RUN ./download.py
 
 ENTRYPOINT ["/bin/sh", "-c"]

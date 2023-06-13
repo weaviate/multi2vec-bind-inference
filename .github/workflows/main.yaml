@@ -14,7 +14,7 @@ on:
 jobs:
   build-image:
     name: Build image
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest-4-cores
     env:
       LOCAL_REPO: multi2vec-bind
       REMOTE_REPO: semitechnologies/multi2vec-bind
