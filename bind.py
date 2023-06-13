@@ -66,14 +66,16 @@ class Bind:
     if input.depth is not None and len(input.depth) > 0:
       inputs[ModalityType.DEPTH] = data.load_and_transform_vision_data(input.depth, self.device)
     if input.imu is not None and len(input.imu) > 0:
-      inputs[ModalityType.IMU] = data.load_and_transform_vision_data(input.imu, self.device)
+      inputs[ModalityType.IMU] = data.load_and_transform_text(input.imu, self.device)
     if input.thermal is not None and len(input.thermal) > 0:
       inputs[ModalityType.THERMAL] = data.load_and_transform_vision_data(input.thermal, self.device)
 
     with torch.no_grad():
-      self.lock.acquire()
-      embeddings = self.model(inputs)
-      self.lock.release()
+      try:
+        self.lock.acquire()
+        embeddings = self.model(inputs)
+      finally:
+        self.lock.release()
 
     text_vectors = embeddings.get(ModalityType.TEXT).tolist() if embeddings.get(ModalityType.TEXT) is not None else []
     image_vectors = embeddings.get(ModalityType.VISION).tolist() if embeddings.get(ModalityType.VISION) is not None else []

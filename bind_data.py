@@ -43,17 +43,21 @@ def load_and_transform_vision_data(images, device):
 
 
 def load_and_transform_audio_data(base64_encoded_audio_files, device):
-  audio_paths = _save_base64_encoded_files(base64_encoded_audio_files)
-  result = data.load_and_transform_audio_data(audio_paths, device)
-  _remove_files(audio_paths)
-  return result
+  try:
+    audio_paths = _save_base64_encoded_files(base64_encoded_audio_files)
+    result = data.load_and_transform_audio_data(audio_paths, device)
+    return result
+  finally:
+    _remove_files(audio_paths)
 
 
 def load_and_transform_video_data(base64_encoded_video_paths, device):
-  video_paths = _save_base64_encoded_files(base64_encoded_video_paths)
-  result = data.load_and_transform_video_data(video_paths, device)
-  _remove_files(video_paths)
-  return result
+  try:
+    video_paths = _save_base64_encoded_files(base64_encoded_video_paths)
+    result = data.load_and_transform_video_data(video_paths, device)
+    return result
+  finally:
+    _remove_files(video_paths)
 
 
 def _save_base64_encoded_files(base64_encoded_files):

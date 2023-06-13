@@ -42,16 +42,10 @@ class SmokeTest(unittest.TestCase):
     text_list=["A dog.", "A car", "A bird"]
     image_paths=["./ImageBind/.assets/dog_image.jpg", "./ImageBind/.assets/car_image.jpg", "./ImageBind/.assets/bird_image.jpg"]
     audio_paths=["./ImageBind/.assets/dog_audio.wav", "./ImageBind/.assets/car_audio.wav", "./ImageBind/.assets/bird_audio.wav"]
-    base64_images = []
-    for img_path in image_paths:
-      base64_images.append(convert_file_to_base64(img_path))
-    base64_audio_files = []
-    for audio_path in audio_paths:
-      base64_audio_files.append(convert_file_to_base64(audio_path))
     req_body = {
-      'texts':text_list,
-      'images':base64_images,
-      'audio':base64_audio_files
+      'texts': text_list,
+      'images': convert_to_base64(image_paths),
+      'audio': convert_to_base64(audio_paths)
     }
     res = requests.post(self.url + '/vectorize', json=req_body)
     resBody = res.json()
@@ -103,6 +97,13 @@ class SmokeTest(unittest.TestCase):
     self.assertEqual(200, res.status_code)
     self.assertTrue(len(resBody['textVectors']) == 0)
     self.assertTrue(len(resBody['imageVectors']) == 1)
+
+
+def convert_to_base64(files: list) -> list:
+  base64_encoded_files = []
+  for file_path in files:
+    base64_encoded_files.append(convert_file_to_base64(file_path))
+  return base64_encoded_files
 
 
 def convert_file_to_base64(file_path: str) -> str:
