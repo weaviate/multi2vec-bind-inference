@@ -1,3 +1,11 @@
 __pycache__
 .checkpoints
+.github
+.git
 .venv
+cicd
+ImageBind/.assets
+ImageBind/bpe
+test
+requirements-test.txt
+smoke_tests.py
