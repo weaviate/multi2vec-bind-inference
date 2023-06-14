@@ -98,6 +98,20 @@ class SmokeTest(unittest.TestCase):
     self.assertTrue(len(resBody['textVectors']) == 0)
     self.assertTrue(len(resBody['imageVectors']) == 1)
 
+  def testVectorizingVideoModality(self):
+    text_list=["A dog.", "A car", "A bird"]
+    video_paths=["./test/VideoSamples/wind_noise.mp4"]
+    req_body = {
+      'texts': text_list,
+      'video': convert_to_base64(video_paths)
+    }
+    res = requests.post(self.url + '/vectorize', json=req_body)
+    resBody = res.json()
+
+    self.assertEqual(200, res.status_code)
+    self.assertTrue(len(resBody['textVectors']) == 3)
+    self.assertTrue(len(resBody['videoVectors']) == 1)
+
 
 def convert_to_base64(files: list) -> list:
   base64_encoded_files = []
@@ -112,6 +126,15 @@ def convert_file_to_base64(file_path: str) -> str:
     base64_encoded_data = base64.b64encode(binary_file_data)
     base64_message = base64_encoded_data.decode('utf-8')
     return base64_message
+
+
+def read_file_contents(file_paths: str) -> str:
+  file_contents = []
+  for file_path in file_paths:
+    with open(file_path, 'r') as file:
+      file_contents.append(file.read().rstrip())
+
+  return file_contents
 
 
 if __name__ == "__main__":
