@@ -112,6 +112,26 @@ class SmokeTest(unittest.TestCase):
     self.assertTrue(len(resBody['textVectors']) == 3)
     self.assertTrue(len(resBody['videoVectors']) == 1)
 
+    videoVector = resBody['videoVectors']
+
+    text_list=["A dog.", "A car", "A bird"]
+    image_paths=["./ImageBind/.assets/dog_image.jpg", "./ImageBind/.assets/car_image.jpg", "./ImageBind/.assets/bird_image.jpg"]
+    video_paths=["./test/VideoSamples/wind_noise.mp4"]
+    req_body = {
+      'texts': text_list,
+      'images': convert_to_base64(image_paths),
+      'video': convert_to_base64(video_paths)
+    }
+    res = requests.post(self.url + '/vectorize', json=req_body)
+    resBody = res.json()
+
+    print(f"len(resBody['imageVectors'] {len(resBody['imageVectors'])}")
+    self.assertEqual(res.status_code, 200)
+    self.assertEqual(len(resBody['textVectors']), 3)
+    self.assertEqual(len(resBody['imageVectors']), 3)
+    self.assertEqual(len(resBody['videoVectors']), 1)
+    self.assertEqual(resBody['videoVectors'], videoVector)
+
 
 def convert_to_base64(files: list) -> list:
   base64_encoded_files = []
