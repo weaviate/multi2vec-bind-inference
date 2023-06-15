@@ -51,6 +51,21 @@ For sanity checks that to check that all works properly you can run our smoke te
 python3 smoke_tests.py
 ```
 
+🐳 Docker support
+-----------------
+
+In order to build locally a docker image one can run this command in project's root folder
+
+```sh
+LOCAL_REPO="local-bind" ./cicd/build.sh
+```
+
+In order to test the built docker image run this command in project's root folder
+
+```sh
+LOCAL_REPO="local-bind" ./cicd/test.sh
+```
+
 🔗 Useful Resources
 --------------------
 
