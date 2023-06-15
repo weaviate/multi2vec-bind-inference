@@ -125,12 +125,45 @@ class SmokeTest(unittest.TestCase):
     res = requests.post(self.url + '/vectorize', json=req_body)
     resBody = res.json()
 
-    print(f"len(resBody['imageVectors'] {len(resBody['imageVectors'])}")
     self.assertEqual(res.status_code, 200)
     self.assertEqual(len(resBody['textVectors']), 3)
     self.assertEqual(len(resBody['imageVectors']), 3)
     self.assertEqual(len(resBody['videoVectors']), 1)
     self.assertEqual(resBody['videoVectors'], videoVector)
+    
+  def testVectorizingThermalAndDepthModalities(self):
+    depth_paths=["./test/DepthSamples/010002.jpg", "./test/DepthSamples/010003.jpg", "./test/DepthSamples/010004.jpg", "./test/DepthSamples/010005.jpg", "./test/DepthSamples/010006.jpg", "./test/DepthSamples/010007.jpg"]
+    thermal_paths=["./test/InfraredSamples/190001.jpg", "./test/InfraredSamples/190002.jpg", "./test/InfraredSamples/190003.jpg", "./test/InfraredSamples/190004.jpg", "./test/InfraredSamples/190005.jpg", "./test/InfraredSamples/190006.jpg"]
+    req_body = {
+      'depth': convert_to_base64(depth_paths),
+      'thermal': convert_to_base64(thermal_paths)
+    }
+    res = requests.post(self.url + '/vectorize', json=req_body)
+    resBody = res.json()
+
+    self.assertEqual(200, res.status_code)
+    self.assertEqual(len(resBody['depthVectors']), 6)
+    self.assertEqual(len(resBody['thermalVectors']), 6)
+    
+    text_list=["A dog.", "A car", "A bird"]
+    image_paths=["./ImageBind/.assets/dog_image.jpg", "./ImageBind/.assets/car_image.jpg", "./ImageBind/.assets/bird_image.jpg"]
+    video_paths=["./test/VideoSamples/wind_noise.mp4"]
+    req_body = {
+      'texts': text_list,
+      'images': convert_to_base64(image_paths),
+      'video': convert_to_base64(video_paths),
+      'depth': convert_to_base64(depth_paths),
+      'thermal': convert_to_base64(thermal_paths)
+    }
+    res = requests.post(self.url + '/vectorize', json=req_body)
+    resBody = res.json()
+
+    self.assertEqual(res.status_code, 200)
+    self.assertEqual(len(resBody['textVectors']), 3)
+    self.assertEqual(len(resBody['imageVectors']), 3)
+    self.assertEqual(len(resBody['videoVectors']), 1)
+    self.assertEqual(len(resBody['depthVectors']), 6)
+    self.assertEqual(len(resBody['thermalVectors']), 6)
 
 
 def convert_to_base64(files: list) -> list:

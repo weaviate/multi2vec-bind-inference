@@ -20,6 +20,29 @@ def load_and_transform_text(text, device):
 
 
 def load_and_transform_vision_data(images, device):
+  normalize = transforms.Normalize(
+                  mean=(0.48145466, 0.4578275, 0.40821073),
+                  std=(0.26862954, 0.26130258, 0.27577711),
+              )
+  return _load_and_transform_vision_data(images, device, 'RGB', normalize)
+
+
+def load_and_transform_depth_data(images, device):
+  return _load_and_transform_depth_or_thermal_data(images, device)
+  
+
+def load_and_transform_thermal_data(images, device):
+  return _load_and_transform_depth_or_thermal_data(images, device)
+
+def _load_and_transform_depth_or_thermal_data(images, device):
+  normalize = transforms.Normalize(
+                  mean=(0.48145466),
+                  std=(0.26862954),
+              )
+  return _load_and_transform_vision_data(images, device, 'L', normalize)
+
+
+def _load_and_transform_vision_data(images, device, image_mode: str, normalize: transforms.Normalize,):
   if images is None:
         return None
 
@@ -32,16 +55,13 @@ def load_and_transform_vision_data(images, device):
               ),
               transforms.CenterCrop(224),
               transforms.ToTensor(),
-              transforms.Normalize(
-                  mean=(0.48145466, 0.4578275, 0.40821073),
-                  std=(0.26862954, 0.26130258, 0.27577711),
-              ),
+              normalize,
           ]
       )
       image_bytes = base64.b64decode(base64_encoded_image_string)
       image = Image.open(io.BytesIO(image_bytes))
-      if image.mode != 'RGB':
-          image = image.convert('RGB')
+      if image.mode != image_mode:
+          image = image.convert(image_mode)
 
       image = data_transform(image).to(device)
       image_outputs.append(image)
