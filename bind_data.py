@@ -6,6 +6,7 @@ from pytorchvideo.data.encoded_video import EncodedVideo
 from torchvision import transforms
 from torchvision.transforms._transforms_video import NormalizeVideo
 from PIL import Image
+import numpy as np
 import base64
 import io
 from datetime import datetime
@@ -18,6 +19,27 @@ import ImageBind.data as data
 def load_and_transform_text(text, device):
   return data.load_and_transform_text(text, device)
 
+def load_and_transform_imu_data(imu_paths, device):
+
+    if imu_paths is None:
+        return None
+
+    imu_torch_2k = []
+
+    for imu_path in imu_paths:
+        imu_numpy = np.loadtxt(imu_path, dtype= np.float32, delimiter=',', skiprows=1)
+        imu_numpy = imu_numpy.reshape((imu_numpy.shape[1],imu_numpy.shape[0]))
+        imu_torch = torch.from_numpy(imu_numpy)
+        if imu_torch.shape[1]<2000:
+            imu_torch_2k.append(torch.nn.functional.pad(input=imu_torch, pad=(0, 2000-imu_torch.shape[1], 0, 0), mode='constant', value=0))
+        elif imu_torch.shape[1]>2000:
+            imu_torch_2k.append(imu_torch[:,:2000])
+        else: 
+            imu_torch_2k.append(imu_torch)
+    
+    imu_torch_2k = [imu_2k.to(device) for imu_2k in imu_torch_2k]
+
+    return torch.stack(imu_torch_2k, dim=0)
 
 def load_and_transform_vision_data(images, device):
   normalize = transforms.Normalize(

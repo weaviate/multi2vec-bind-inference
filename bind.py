@@ -73,7 +73,7 @@ class Bind:
     if input.depth is not None and len(input.depth) > 0:
       inputs[ModalityType.DEPTH] = data.load_and_transform_depth_data(input.depth, self.device)
     if input.imu is not None and len(input.imu) > 0:
-      inputs[ModalityType.IMU] = data.load_and_transform_text(input.imu, self.device)
+      inputs[ModalityType.IMU] = data.load_and_transform_imu_data(input.imu, self.device)
     if input.thermal is not None and len(input.thermal) > 0:
       inputs[ModalityType.THERMAL] = data.load_and_transform_thermal_data(input.thermal, self.device)
 
