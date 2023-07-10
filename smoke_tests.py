@@ -133,8 +133,8 @@ class SmokeTest(unittest.TestCase):
     self.assertEqual(resBody['videoVectors'], videoVector)
     
   def testVectorizingThermalAndDepthModalities(self):
-    depth_paths=["./test/DepthSamples/010002.jpg", "./test/DepthSamples/010003.jpg", "./test/DepthSamples/010004.jpg", "./test/DepthSamples/010005.jpg", "./test/DepthSamples/010006.jpg", "./test/DepthSamples/010007.jpg"]
-    thermal_paths=["./test/InfraredSamples/190001.jpg", "./test/InfraredSamples/190002.jpg", "./test/InfraredSamples/190003.jpg", "./test/InfraredSamples/190004.jpg", "./test/InfraredSamples/190005.jpg", "./test/InfraredSamples/190006.jpg"]
+    depth_paths=glob("./test/DepthSamples/*.jpg")
+    thermal_paths=glob("./test/InfraredSamples/*.jpg")
     req_body = {
       'depth': convert_to_base64(depth_paths),
       'thermal': convert_to_base64(thermal_paths)
@@ -170,26 +170,26 @@ class SmokeTest(unittest.TestCase):
     imu_paths = glob("test/IMUSamples/*.csv")
 
     req_body = {
-      'imu': imu_paths
+      'imu': convert_to_base64(imu_paths),
     }
     res = requests.post(self.url + '/vectorize', json=req_body)
     resBody = res.json()
 
     self.assertEqual(200, res.status_code)
-    self.assertEqual(len(resBody['imuVectors']), 5)
+    self.assertEqual(len(resBody['imuVectors']), 6)
     
     text_list=["A dog.", "A car", "A bird"]
     image_paths=["./ImageBind/.assets/dog_image.jpg", "./ImageBind/.assets/car_image.jpg", "./ImageBind/.assets/bird_image.jpg"]
     video_paths=["./test/VideoSamples/wind_noise.mp4"]
-    depth_paths=["./test/DepthSamples/010002.jpg", "./test/DepthSamples/010003.jpg", "./test/DepthSamples/010004.jpg", "./test/DepthSamples/010005.jpg", "./test/DepthSamples/010006.jpg", "./test/DepthSamples/010007.jpg"]
-    thermal_paths=["./test/InfraredSamples/190001.jpg", "./test/InfraredSamples/190002.jpg", "./test/InfraredSamples/190003.jpg", "./test/InfraredSamples/190004.jpg", "./test/InfraredSamples/190005.jpg", "./test/InfraredSamples/190006.jpg"]
+    depth_paths=glob("./test/DepthSamples/*.jpg")
+    thermal_paths=glob("./test/InfraredSamples/*.jpg")
     req_body = {
       'texts': text_list,
       'images': convert_to_base64(image_paths),
       'video': convert_to_base64(video_paths),
       'depth': convert_to_base64(depth_paths),
       'thermal': convert_to_base64(thermal_paths),
-      'imu': imu_paths
+      'imu': convert_to_base64(imu_paths),
     }
     res = requests.post(self.url + '/vectorize', json=req_body)
     resBody = res.json()
@@ -200,7 +200,7 @@ class SmokeTest(unittest.TestCase):
     self.assertEqual(len(resBody['videoVectors']), 1)
     self.assertEqual(len(resBody['depthVectors']), 6)
     self.assertEqual(len(resBody['thermalVectors']), 6)
-    self.assertEqual(len(resBody['imuVectors']), 5)
+    self.assertEqual(len(resBody['imuVectors']), 6)
 
 
 def convert_to_base64(files: list) -> list:
@@ -216,15 +216,6 @@ def convert_file_to_base64(file_path: str) -> str:
     base64_encoded_data = base64.b64encode(binary_file_data)
     base64_message = base64_encoded_data.decode('utf-8')
     return base64_message
-
-
-def read_file_contents(file_paths: str) -> str:
-  file_contents = []
-  for file_path in file_paths:
-    with open(file_path, 'r') as file:
-      file_contents.append(file.read().rstrip())
-
-  return file_contents
 
 
 if __name__ == "__main__":

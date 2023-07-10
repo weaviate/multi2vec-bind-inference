@@ -19,7 +19,7 @@ import ImageBind.data as data
 def load_and_transform_text(text, device):
   return data.load_and_transform_text(text, device)
 
-def load_and_transform_imu_data(imu_paths, device):
+def _load_and_transform_imu_data(imu_paths, device):
 
     if imu_paths is None:
         return None
@@ -40,6 +40,14 @@ def load_and_transform_imu_data(imu_paths, device):
     imu_torch_2k = [imu_2k.to(device) for imu_2k in imu_torch_2k]
 
     return torch.stack(imu_torch_2k, dim=0)
+
+def load_and_transform_imu_data(base64_encoded_imu_files, device):
+  try:
+    imu_paths = _save_base64_encoded_files(base64_encoded_imu_files)
+    result = _load_and_transform_imu_data(imu_paths, device)
+    return result
+  finally:
+    _remove_files(imu_paths)
 
 def load_and_transform_vision_data(images, device):
   normalize = transforms.Normalize(
@@ -161,6 +169,7 @@ def _load_and_transform_video_data(
         video_outputs.append(all_video)
 
     return torch.stack(video_outputs, dim=0).to(device)
+
 
 def _save_base64_encoded_files(base64_encoded_files):
   file_paths = []
