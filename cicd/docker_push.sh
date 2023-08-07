@@ -17,13 +17,6 @@ function main() {
 }
 
 function init() {
-  if [ ! -z "$MODEL_TAG_NAME" ]; then
-    # a model tag name was specified to overwrite the model name. This is the
-    # case, for example, when the original model name contains characters we
-    # can't use in the docker tag
-    model_name="$MODEL_TAG_NAME"
-  fi
-
   docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   docker buildx create --use
   echo "$docker_password" | docker login -u "$docker_username" --password-stdin
