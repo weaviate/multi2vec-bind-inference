@@ -66,8 +66,15 @@ In order to test the built docker image run this command in project's root folde
 LOCAL_REPO="local-bind" ./cicd/test.sh
 ```
 
+You can also add a healthcheck for docker compose
+```docker
+    healthcheck:
+      test: wget --no-verbose --tries=3 --spider http://localhost:8080/.well-known/ready || exit 1
+```
+
 🔗 Useful Resources
 --------------------
 
 - [Meta AI ImageBind annoucement article](https://ai.facebook.com/blog/imagebind-six-modalities-binding-ai/)
 - [ImageBind github project](https://github.com/facebookresearch/ImageBind)
+- [Multi2Vec Bind JS Demo App](https://github.com/weaviate-tutorials/multi2vec-bind-js)
