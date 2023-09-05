@@ -38,6 +38,8 @@ app = FastAPI(lifespan=lifespan)
 
 @app.get("/.well-known/live", response_class=Response)
 @app.get("/.well-known/ready", response_class=Response)
+@app.head("/.well-known/live", response_class=Response)
+@app.head("/.well-known/ready", response_class=Response)
 async def live_and_ready(response: Response):
   response.status_code = status.HTTP_204_NO_CONTENT
 
